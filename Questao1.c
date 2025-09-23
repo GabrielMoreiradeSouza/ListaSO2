@@ -9,7 +9,7 @@
 #define DISTANCIA_MAX 100
 
 const char* nomes_cavalos[NUM_CAVALOS] = {
-    "Relâmpago", "Pé de Vento", "Trovão", "Estrela Cadente", "Furacão", "Cometa"
+    "Relâmpago", "Pé de Pano", "Trovão", "Estrela Cadente", "Furacão", "Cometa"
 };
 
 typedef struct {
