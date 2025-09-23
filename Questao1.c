@@ -8,7 +8,6 @@
 #define NUM_CAVALOS 6
 #define DISTANCIA_MAX 100
 
-// Nomes criativos para os cavalos
 const char* nomes_cavalos[NUM_CAVALOS] = {
     "Relâmpago", "Pé de Vento", "Trovão", "Estrela Cadente", "Furacão", "Cometa"
 };
@@ -51,7 +50,6 @@ void* correr(void* arg) {
     pthread_mutex_lock(&mutex);
     cavalo->colocacao = colocacao_atual++;
     
-    // Verifica se este é o vencedor real
     if (cavalo->colocacao == 1) {
         vencedor_aposta = cavalo->id;
     }
@@ -130,7 +128,6 @@ int main() {
     pthread_t threads[NUM_CAVALOS];
     srand(time(NULL));
     
-    // Inicializa os cavalos
     for (int i = 0; i < NUM_CAVALOS; i++) {
         cavalos[i].id = i + 1;
         strcpy(cavalos[i].nome, nomes_cavalos[i]);
@@ -140,14 +137,12 @@ int main() {
         cavalos[i].seed = time(NULL) + cavalos[i].id;
     }
     
-    // Mostra os cavalos e faz a aposta
     printf("🎰 BEM-VINDO AO HIPISMO DIGITAL! 🎰\n");
     mostrar_cavalos();
     cavalo_escolhido = fazer_aposta();
     
     printf("\n✅ Você apostou no %s! Boa sorte!\n", cavalos[cavalo_escolhido - 1].nome);
     
-    // Animação de início
     animacao_inicio();
     
     // Cria as threads
@@ -155,12 +150,10 @@ int main() {
         pthread_create(&threads[i], NULL, correr, &cavalos[i]);
     }
     
-    // Aguarda todas as threads terminarem
     for (int i = 0; i < NUM_CAVALOS; i++) {
         pthread_join(threads[i], NULL);
     }
     
-    // Mostra resultados
     printf("\n🏆 CLASSIFICAÇÃO FINAL:\n");
     printf("=======================\n");
     for (int i = 1; i <= NUM_CAVALOS; i++) {
@@ -173,11 +166,8 @@ int main() {
         }
     }
     
-    // Mostra resultado da aposta
     mostrar_resultado_aposta();
     
     pthread_mutex_destroy(&mutex);
-    
-    printf("\n🐎 Obrigado por jogar! Volte sempre!\n");
     return 0;
 }
