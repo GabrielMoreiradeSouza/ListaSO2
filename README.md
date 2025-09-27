@@ -1,12 +1,113 @@
 # ListaSO2
 
-//QUESTÃO 1
+# QUESTÃO 1
+
+Relatório – Corrida de Cavalos com Threads e Mutex (Simulação com Apostas)
+
+Objetivo
+
+Simular uma corrida de cavalos com múltiplas threads concorrentes, onde cada cavalo é controlado por uma thread independente, percorrendo uma distância até a linha de chegada.
+
+Além disso, o programa:
+
+* Permite o usuário apostar em um cavalo antes da corrida;
+* Apresenta o progresso dos cavalos em tempo real;
+* Garante que a ordem de chegada (colocação) seja registrada de forma correta e sem condições de corrida, usando mutex para sincronização.
+
+Estrutura Geral do Código
+
+Inicialização:
+
+* Um vetor com 6 cavalos é criado. Cada cavalo possui:
+
+  * id, nome, velocidade_base, distancia_percorrida, colocacao e uma seed para aleatoriedade.
+* A velocidade base é gerada aleatoriamente entre 4 e 9 para cada cavalo.
+
+Threads:
+
+* Cada cavalo é representado por uma thread, que executa a função "correr".
+* Dentro dessa função:
+
+  * O cavalo avança somando sua velocidade base com um número aleatório entre 0 e 7.
+  * O tempo de espera entre os avanços é proporcional à sua velocidade.
+  * Ao atingir a linha de chegada (100 metros), o cavalo entra numa região crítica protegida por mutex para atualizar a colocação final.
+
+Sincronização com Mutex
+
+Problema abordado:
+
+* Sem sincronização, múltiplas threads poderiam alterar a variável colocacao_atual simultaneamente, resultando em dados inconsistentes ou repetições de colocação.
+
+Solução aplicada:
+
+* Foi utilizado um mutex global para proteger a região onde:
+
+  * A colocação é incrementada e atribuída ao cavalo que chegou.
+  * O primeiro cavalo a completar a corrida define o vencedor da aposta.
+
+Resultado:
+
+* O uso do mutex garante integridade nas operações entre as threads.
+* A colocação dos cavalos e o vencedor da corrida são sempre definidos corretamente.
+
+Apostas
+
+Antes da corrida:
+
+* O jogador realiza uma aposta selecionando um número de cavalo entre 1 e 6.
+
+Após a corrida:
+
+* O programa compara o cavalo apostado com o vencedor real.
+* Mostra a classificação final da corrida e informa se o jogador venceu ou perdeu a aposta.
+
+Exemplo de Execução
+
+🎰 BEM-VINDO AO HIPISMO DIGITAL! 🎰
+
+🐎 CAVALOS DISPONÍVEIS PARA APOSTA:
+1 - Relâmpago
+2 - Pé de Pano
+3 - Trovão
+4 - Estrela Cadente
+5 - Furacão
+6 - Cometa
+
+Em qual cavalo você aposta? (1 a 6): 3
+✅ Você apostou no Trovão! Boa sorte!
+
+🏇 PREPARANDO A CORRIDA DE CAVALOS!
+...
+
+🐎 Relâmpago: 97 metros
+🎉 Relâmpago terminou em 1º lugar!
+🐎 Pé de Pano: 100 metros
+🎉 Pé de Pano terminou em 2º lugar!
+...
+
+🎯 RESULTADO DA APOSTA:
+❌ Que pena! Você errou.
+😢 Trovão não venceu a corrida.
+⭐ O vencedor foi Relâmpago
+
+Conclusão
+
+A utilização de threads permite simular de forma realista uma corrida paralela entre cavalos. No entanto, sem mecanismos de sincronização, como mutex, dados compartilhados como a colocação dos cavalos podem ser corrompidos.
+
+Neste código, a exclusão mútua foi essencial para garantir que cada thread atualizasse os dados de forma segura, sem colisões, garantindo a precisão do resultado final e da aposta do jogador.
+
+Como compilar e executar
+
+O código foi testado em uma máquina virtual Linux (WSL Debian):
+
+gcc -o corrida corrida.c -lpthread
+./corrida
 
 
-//QUESTÃO 2
+# QUESTÃO 2
 
 
-//QUESTÃO 3
+# QUESTÃO 3
 
 Questão 3
 Simular M contas bancárias acessadas por T threads, onde cada thread realiza transferências aleatórias entre contas.
