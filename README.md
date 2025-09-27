@@ -151,7 +151,7 @@ concluimos que que a sicronização e essencial em sistemas concorrentes.com mut
 
 
 
-//QUESTÃO 4
+# QUESTÃO 4
 
 Questão 4
 Construção de uma linha de processamento com três threads (captura, processamento e gravação) conectadas por filas limitadas e protegidas por mutex e variáveis de condição.
@@ -221,3 +221,305 @@ Análise do Resultado
 Tudo foi processado: Nenhum item foi perdido. Todos os 15 itens gerados passaram pelos 3 estágios.  
 A ordem está correta: Para cada item, a ordem foi sempre Captura -> Processamento -> Gravação.  
 O programa terminou certo: O SINAL_FIM foi passado de thread em thread, garantindo que o programa encerrasse de forma limpa e sem travar.
+
+# Questão 7
+
+Relatório – Problema dos Filósofos: Prevenção de Deadlock com Lock Ordenado e Semáforo
+
+Objetivo
+
+Simular o clássico problema dos filósofos (Dining Philosophers Problem), onde N filósofos compartilham N garfos (recursos) e devem alternar entre pensar e comer. Cada filósofo só pode comer se tiver os dois garfos adjacentes disponíveis.
+
+A simulação é feita por meio de múltiplas threads Python, e o objetivo principal é comparar duas estratégias diferentes de prevenção de deadlock:
+
+* Versão A: Uso de **ordenação global** dos locks (lock de menor índice primeiro).
+* Versão B: Uso de um **semáforo (porta)** que limita o número de filósofos tentando comer simultaneamente.
+
+Em ambas as versões, também é aplicada uma lógica de **mitigação de fome** (starvation) para evitar que algum filósofo coma repetidamente enquanto outros aguardam.
+
+Configurações do Código
+
+Parâmetros definidos no início do código:
+
+* N: número de filósofos e de garfos (ex: 5).
+* DURACAO_SEGUNDOS: tempo total da simulação (ex: 10s).
+* RELATAR_EVENTOS: define se imprime início/fim de cada refeição (opcional, para debug).
+
+Métricas ao final:
+
+* Número de refeições feitas por cada filósofo.
+* Tempo máximo de espera de cada filósofo para começar a comer.
+
+Versão A – Lock com Ordem Global
+
+Descrição da abordagem:
+
+* Cada filósofo tenta pegar os dois garfos adjacentes.
+* Antes de tentar os locks, a ordem dos índices dos garfos é organizada: sempre tenta pegar primeiro o de menor índice, depois o de maior.
+* Isso garante uma **ordem total de alocação dos recursos**, evitando situações de espera circular (causa de deadlock).
+
+Mitigação de fome:
+
+* Um filósofo só tenta comer se ele tiver feito até no máximo uma refeição a mais que o filósofo que menos comeu.
+
+Resumo:
+
+* Previne deadlock pela **ordenação na aquisição dos locks**.
+* Simples de implementar, eficiente em pequenos grupos.
+
+Versão B – Semáforo como Porta Global
+
+Descrição da abordagem:
+
+* Um semáforo com valor N-1 (ex: 4 para 5 filósofos) é usado como “portão de entrada”.
+* Só permite que no máximo N-1 filósofos tentem pegar garfos ao mesmo tempo.
+* Isso garante que sempre haja pelo menos um filósofo com acesso exclusivo a um garfo que os outros precisam, evitando o ciclo de espera circular.
+
+Funcionamento:
+
+* Antes de tentar os locks, o filósofo precisa adquirir o semáforo.
+* Após comer (ou se não conseguir os locks), libera o semáforo.
+
+Mitigação de fome:
+
+* Igual à versão A, verifica se está comendo muito mais que os demais.
+
+Resumo:
+
+* Previne deadlock pelo **controle de concorrência via semáforo**.
+* Útil quando não se quer ou não se pode impor uma ordem global de locks.
+
+Exemplo de Saída (modo silencioso):
+
+===== RESUMO FINAL (ORDEM) =====
+Tempo: 10s
+
+Filósofo 0: refeições=  40  maior_espera=  5.2 ms
+Filósofo 1: refeições=  39  maior_espera=  4.9 ms
+Filósofo 2: refeições=  39  maior_espera=  5.1 ms
+Filósofo 3: refeições=  40  maior_espera=  4.8 ms
+Filósofo 4: refeições=  39  maior_espera=  5.0 ms
+
+===== RESUMO FINAL (SEMAFORO) =====
+Tempo: 10s
+
+Filósofo 0: refeições=  41  maior_espera=  6.3 ms
+Filósofo 1: refeições=  40  maior_espera=  6.0 ms
+Filósofo 2: refeições=  39  maior_espera=  5.9 ms
+Filósofo 3: refeições=  40  maior_espera=  6.1 ms
+Filósofo 4: refeições=  40  maior_espera=  6.0 ms
+
+Comparação entre as versões
+
+| Critério              | Versão A (Ordem de Lock)    | Versão B (Semáforo)              |
+| --------------------- | --------------------------- | -------------------------------- |
+| Prevenção de Deadlock | Ordem total de locks        | Limita concorrência com semáforo |
+| Flexibilidade         | Baixa (requer ordem global) | Alta (pode manter ordem local)   |
+| Complexidade          | Simples                     | Levemente maior                  |
+| Mitigação de fome     | Simples e igual em ambas    | Simples e igual em ambas         |
+
+Conclusão
+
+Ambas as abordagens são eficazes na prevenção de deadlock no problema dos filósofos. A versão com ordenação global é mais simples, mas depende de garantir uma ordem fixa nos recursos. Já a versão com semáforo é mais flexível e pode ser útil em sistemas mais dinâmicos.
+
+Além disso, o uso da mitigação de fome é fundamental para manter a equidade entre os filósofos e garantir que todos consigam comer com frequência semelhante.
+
+Esse problema é uma excelente representação de desafios reais em sistemas concorrentes, como escalonadores de threads, bancos de dados e controle de acesso a dispositivos.
+
+Execução
+
+Ambos os códigos são escritos em Python e não requerem bibliotecas externas além da padrão. Para executar:
+
+python3 filosofos_ordem.py
+python3 filosofos_semaforo.py
+
+# Questão 9
+Relatório – Corrida com Barreira de Threads (pthread_barrier_t)
+
+Objetivo
+
+Simular uma corrida composta por várias etapas (pernas), onde múltiplas threads (corredores) devem sincronizar-se a cada etapa para simular uma volta completa.
+
+O programa mede quantas voltas completas são realizadas em um determinado tempo (10 segundos), sincronizando os corredores usando barreiras (`pthread_barrier_t`) para garantir que todos avancem juntos para a próxima etapa.
+
+Estrutura do Código
+
+Parâmetros definidos:
+
+* K_THREADS: número de corredores (threads).
+* LEGS_POR_VOLTA: número de etapas (pernas) que compõem uma volta.
+* DURACAO_SEG: tempo total de execução da simulação (em segundos).
+
+Funções principais:
+
+* agora_ns(): retorna o tempo atual em nanossegundos, usado para controle de duração.
+* corredor(): função executada por cada thread, responsável por simular o avanço do corredor em cada etapa e sincronizar com os demais.
+
+Execução das Threads
+
+* Cada thread representa um corredor.
+* Em um laço de repetição:
+
+  * A thread "descansa" um tempo aleatório (simulando esforço da etapa) usando `nanosleep`.
+  * Após esse tempo, todas as threads se encontram em uma barreira (`pthread_barrier_wait`).
+  * Quando todas chegam na barreira, elas são liberadas simultaneamente para a próxima etapa.
+  * Apenas uma thread (retorno `PTHREAD_BARRIER_SERIAL_THREAD`) atualiza a etapa (perna) global.
+  * Quando o número de etapas atinge o total de pernas por volta, é registrada a conclusão de uma volta e o contador global de voltas (`voltas`) é incrementado.
+
+Controle de tempo
+
+* A função `main` inicia a medição de tempo e espera até atingir a duração de execução especificada (10 segundos).
+* Durante esse tempo, as threads continuam se sincronizando e registrando voltas.
+* Ao final do tempo, o flag `parar` é ativado e todas as threads terminam seu laço.
+
+Sincronização com Barreira
+
+Problema abordado:
+
+* Em sistemas concorrentes, sem sincronização, threads podem avançar em velocidades diferentes, tornando difícil identificar quando uma volta completa foi feita.
+
+Solução aplicada:
+
+* Utiliza-se `pthread_barrier_t` para garantir que todas as threads avancem juntas para a próxima etapa.
+* A barreira age como um ponto de encontro: nenhuma thread avança até que todas tenham chegado.
+* Isso garante que uma volta só seja contabilizada após todos os corredores completarem as etapas simultaneamente.
+
+Exemplo de Saída
+
+Iniciando corrida: K=4, pernas/volta=4, duracao=10s
+Volta concluida #1
+Volta concluida #2
+Volta concluida #3
+Volta concluida #4
+...
+Voltas totais: 13
+Taxa: 78.00 voltas/min
+
+Conclusão
+
+Esse programa demonstra o uso eficaz de barreiras (`pthread_barrier_t`) para sincronizar múltiplas threads em um ponto comum. Ele mostra como é possível controlar fluxos paralelos para realizar uma ação conjunta, como contabilizar voltas em uma corrida.
+
+O uso da barreira elimina a necessidade de mutex para contagem de voltas, pois apenas uma thread executa a atualização da variável `voltas` a cada barreira.
+
+Como Compilar e Executar
+
+Esse código pode ser compilado e testado em sistemas Linux, incluindo máquinas virtuais ou WSL (Windows Subsystem for Linux). Exemplo de comandos:
+
+gcc -o corrida_barreira corrida_barreira.c -lpthread
+./corrida_barreira
+
+# QUESTÃO 10
+
+Relatório – Simulação de Deadlock com Threads, Mutex e Detecção via Watchdog
+
+Objetivo
+
+Este programa tem como objetivo simular um ambiente multithread com múltiplos recursos compartilhados. Cada thread representa um processo que tenta adquirir dois recursos (mutexes). O objetivo é comparar dois cenários:
+
+* Um com ordem forçada de aquisição que pode gerar deadlock;
+* Outro com ordem total que evita deadlock.
+
+Além disso, o programa conta com uma thread “watchdog” que monitora o progresso do sistema e detecta situações de deadlock.
+
+Configurações Principais
+
+As opções de configuração do programa são definidas por meio de parâmetros de linha de comando:
+
+* `-m`: modo de alocação ("bad" para forçar deadlock, ou omitir para evitar).
+* `-n`: número de recursos (e de threads, pois há uma thread por recurso).
+* `-T`: tempo de espera máximo sem progresso para detectar deadlock.
+* `-d`: duração da simulação no modo sem deadlock.
+
+Exemplo de execução:
+./programa -m bad -n 5 -T 2
+Executa com 5 threads, modo que permite deadlock, com timeout de 2 segundos.
+
+Estrutura do Código
+
+Cada recurso é representado por um `pthread_mutex_t`. Há:
+
+* Um vetor de mutexes (`resource_lock`);
+* Vetores auxiliares que guardam informações para debug: qual thread possui qual recurso (`owned_by`), qual recurso cada thread está tentando adquirir (`waiting_resource`), e em qual fase da execução cada thread se encontra (`thread_phase`).
+
+Execução das Threads
+
+Cada thread executa a função `worker_main`. O comportamento varia conforme o modo escolhido:
+
+Modo BAD (com possível deadlock):
+
+* Cada thread tenta adquirir dois recursos em ordem circular (ex: thread 0 tenta pegar recurso 0 e depois 1).
+* Como todas as threads fazem isso simultaneamente, há uma chance de todas se bloquearem na segunda aquisição, gerando um deadlock clássico do tipo "circular wait".
+
+Modo GOOD (sem deadlock):
+
+* Os recursos são sempre adquiridos em ordem crescente (menor índice primeiro).
+* Isso impede que ocorra espera circular, eliminando a possibilidade de deadlock.
+
+Etapas da execução de cada thread:
+
+1. Marca que está aguardando o primeiro recurso.
+2. Tenta adquirir o primeiro mutex.
+3. Aguarda brevemente (`usleep`) para simular tempo de uso.
+4. Marca que está aguardando o segundo recurso.
+5. Tenta adquirir o segundo mutex.
+6. Realiza trabalho por um curto tempo.
+7. Atualiza o tempo do último progresso.
+8. Libera os recursos.
+
+Watchdog
+
+* A função `watchdog_main` é executada em uma thread separada.
+* Verifica periodicamente se houve progresso nas threads.
+* Se o tempo desde o último progresso ultrapassar o `timeout_s`, assume que houve deadlock.
+* Em caso de deadlock, imprime um snapshot do estado das threads e recursos, e encerra o programa com `_exit`.
+
+Relatório de Estado em caso de Deadlock
+
+Exemplo de saída no modo BAD com deadlock:
+
+=== Watchdog: 2 s sem progresso ===
+Recursos:
+R0 -> T0
+R1 -> T1
+R2 -> T2
+R3 -> T3
+R4 -> T4
+Threads:
+T0: wait2 aguardando R1
+T1: wait2 aguardando R2
+T2: wait2 aguardando R3
+T3: wait2 aguardando R4
+T4: wait2 aguardando R0
+Conclusao: deadlock detectado.
+
+Esse relatório mostra que cada thread está aguardando por um recurso que está sendo segurado por outra, formando um ciclo de espera, caracterizando um deadlock.
+
+Modo GOOD
+
+No modo GOOD, a execução termina após um tempo pré-definido (`run_s`) e a mensagem final é exibida:
+
+Execucao concluida sem deadlock.
+
+Conclusão
+
+Esse programa demonstra de forma prática o conceito de **deadlock** em sistemas concorrentes, causado por:
+
+* Espera circular;
+* Alocação parcial de recursos;
+* Não preempção.
+
+E mostra também como evitá-lo impondo uma **ordem total de aquisição dos recursos**.
+
+Além disso, o uso de uma thread watchdog permite a **detecção ativa de deadlocks** com diagnóstico completo do estado do sistema, útil para depuração e análise de sistemas reais.
+
+Compilação e Execução
+
+gcc -o deadlock_sim deadlock_sim.c -lpthread
+./deadlock_sim -m bad -n 5 -T 2
+
+ou
+
+./deadlock_sim -m good -n 5 -T 2 -d 8
+
+
+
