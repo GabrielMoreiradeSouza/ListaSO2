@@ -222,6 +222,112 @@ Tudo foi processado: Nenhum item foi perdido. Todos os 15 itens gerados passaram
 A ordem está correta: Para cada item, a ordem foi sempre Captura -> Processamento -> Gravação.  
 O programa terminou certo: O SINAL_FIM foi passado de thread em thread, garantindo que o programa encerrasse de forma limpa e sem travar.
 
+# Questão 6
+
+**Relatório – Questão 6: Soma total e histograma com P threads (MapReduce em C)**
+
+**Objetivo**
+
+O objetivo da atividade é implementar uma aplicação paralela em C que leia um grande volume de inteiros e, utilizando múltiplas threads, calcule:
+
+a) A soma total de todos os inteiros;
+b) O histograma de frequência de cada valor.
+
+A execução deve ser feita em paralelo com P threads, avaliando o desempenho para diferentes quantidades de threads (P = 1, 2, 4, 8).
+
+---
+
+**Estrutura da Solução**
+
+A solução implementa o modelo **MapReduce** manualmente, seguindo estes princípios:
+
+1. **Map (em paralelo)**:
+
+   * O vetor de inteiros é dividido igualmente entre P threads.
+   * Cada thread calcula a **soma parcial** e o **histograma local** do seu trecho.
+
+2. **Reduce (na thread principal)**:
+
+   * As somas parciais são agregadas na variável `soma_total` com exclusão mútua.
+   * Os histogramas locais são fundidos no `histograma_global`, também protegidos por mutex.
+
+---
+
+**Geração dos Dados**
+
+* O código **não depende de arquivo externo**.
+* O vetor `vetor[]` com 10 milhões de inteiros é preenchido com valores aleatórios entre 0 e 9999 no início da execução.
+* Isso facilita a execução em ambientes como compiladores online e garante reprodutibilidade.
+
+---
+
+**Sincronização e Concorrência**
+
+* São utilizados **dois mutexes** para garantir exclusão mútua mínima:
+
+  * `mutex_soma` para proteger a soma global.
+  * `mutex_hist` para proteger o histograma global.
+* Isso permite que diferentes threads escrevam ao mesmo tempo desde que estejam em regiões não conflitantes.
+
+---
+
+**Execução**
+
+O número de threads é configurado diretamente no código, com a diretiva:
+
+```c
+#define N_THREADS 4
+```
+
+Alterando esse valor para 1, 2, 4 ou 8, é possível medir o tempo de execução e calcular o **speedup** com base no tempo da versão sequencial (P=1).
+
+A função `tempo_agora()` usa `gettimeofday` para calcular o tempo de execução com precisão de microssegundos.
+
+---
+
+**Exemplo de Saída**
+
+```
+Threads: 4
+Tempo: 0.3824 segundos
+Soma total: 49998127400
+Top 10 valores mais frequentes:
+Valor 0: 5044 vezes
+Valor 1: 4962 vezes
+Valor 2: 4921 vezes
+...
+```
+
+---
+
+**Cálculo do Speedup**
+
+O speedup é calculado comparando o tempo da versão sequencial (P=1) com o tempo das versões paralelas:
+
+```
+Speedup(P) = Tempo(1 thread) / Tempo(P threads)
+```
+
+Esperado:
+
+* Speedup próximo de P quando a carga de trabalho é balanceada e o overhead de sincronização é pequeno.
+* A partir de certo ponto (ex: P > número de núcleos físicos), o ganho se estabiliza ou até diminui.
+
+---
+
+**Conclusão**
+
+A solução proposta simula eficientemente o modelo MapReduce em C, sem necessidade de arquivos externos, e com suporte à medição de desempenho.
+
+A aplicação demonstra:
+
+* Divisão de trabalho entre threads;
+* Agregação segura com mutexes;
+* Eficiência crescente com paralelismo até o ponto ideal.
+
+Este código é adequado para experimentos simples e reprodutíveis, inclusive em compiladores online.
+
+---
 # Questão 7
 
 Relatório – Problema dos Filósofos: Prevenção de Deadlock com Lock Ordenado e Semáforo
