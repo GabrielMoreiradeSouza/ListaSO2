@@ -105,6 +105,125 @@ gcc -o corrida corrida.c -lpthread
 
 
 # QUESTÃO 2
+**Relatório – Produtor-Consumidor com Buffer Limitado e Exclusão Mútua (Atividade 2)**
+
+**Objetivo**
+
+Simular a clássica **condição de concorrência produtor-consumidor**, onde um produtor gera itens que são consumidos por um consumidor, utilizando um **buffer de tamanho fixo** compartilhado entre as threads.
+
+O desafio principal é garantir:
+
+* A correta sincronização entre threads;
+* A integridade dos dados no buffer;
+* A prevenção de **condições de corrida**, **deadlocks** e **espera ocupada** (busy-wait).
+
+---
+
+**Funcionamento Geral do Programa**
+
+O programa cria duas threads:
+
+* **Produtor**: insere itens (inteiros) no buffer.
+* **Consumidor**: remove itens do buffer.
+
+A execução termina quando o produtor gera a quantidade total de itens (`TOTAL_ITEMS`) e o consumidor consome todos eles.
+
+Parâmetros são passados via linha de comando:
+
+```bash
+./atividade2 <BUFFER_SIZE> <TOTAL_ITEMS>
+```
+
+Exemplo:
+
+```bash
+./atividade2 8 100000
+```
+
+---
+
+**Principais Estruturas**
+
+* `buf[]`: buffer circular compartilhado entre produtor e consumidor.
+* `head` e `tail`: índices de leitura e escrita no buffer.
+* `count`: número de elementos atualmente no buffer.
+* `capacity`: tamanho máximo do buffer (definido por parâmetro).
+* `produced` e `consumed`: contadores globais das operações realizadas.
+* `pthread_mutex_t mtx`: protege as variáveis compartilhadas.
+* `pthread_cond_t not_empty`, `not_full`: variáveis de condição para sincronizar o acesso.
+
+---
+
+**Controle de Concorrência**
+
+A sincronização entre threads é feita com:
+
+1. **Mutex (`mtx`)**:
+
+   * Garante exclusão mútua no acesso às variáveis compartilhadas (buffer, índices, contadores).
+
+2. **Variáveis de condição**:
+
+   * `not_full`: produtor aguarda se o buffer está cheio.
+   * `not_empty`: consumidor aguarda se o buffer está vazio.
+
+---
+
+**Fluxo do Produtor**
+
+* Verifica se o total de itens produzidos foi atingido.
+* Se o buffer estiver cheio (`count == capacity`), aguarda `not_full`.
+* Insere um item no `buf[tail]`, atualiza `tail` circularmente e incrementa `count` e `produced`.
+* Sinaliza `not_empty` para liberar o consumidor.
+
+---
+
+**Fluxo do Consumidor**
+
+* Verifica se já consumiu todos os itens e o buffer está vazio.
+* Se o buffer estiver vazio (`count == 0`), aguarda `not_empty`, a menos que a produção tenha encerrado.
+* Lê e descarta o item de `buf[head]`, atualiza `head` circularmente e decrementa `count`.
+* Incrementa `consumed` e sinaliza `not_full` para liberar o produtor.
+
+---
+
+**Exemplo de Saída**
+
+```
+done: produced=100000 consumed=100000
+```
+
+Isso indica que todos os itens foram produzidos e consumidos corretamente, sem perda ou duplicação.
+
+---
+
+**Erros Tratados**
+
+* Validação de argumentos: não aceita `capacity <= 0` ou `total_items == 0`.
+* Falha de alocação de memória (`malloc`).
+* Encerramento correto com `pthread_join`.
+
+---
+
+**Conclusão**
+
+Este código implementa corretamente o problema do produtor-consumidor com:
+
+* **Buffer circular** de tamanho arbitrário;
+* **Controle de concorrência robusto** via mutex e condições;
+* **Evita busy-waiting** usando `pthread_cond_wait`;
+* **Sincronização eficiente**, garantindo que o produtor não escreva em buffer cheio e o consumidor não leia buffer vazio.
+
+A aplicação é apropriada para ambientes Linux com POSIX Threads (pthreads), sendo compatível com máquinas virtuais, WSL e sistemas Unix-like.
+
+---
+
+**Compilação e Execução**
+
+```bash
+gcc -pthread -O2 -Wall atividade2.c -o atividade2
+./atividade2 8 100000
+```
 
 
 # QUESTÃO 3
